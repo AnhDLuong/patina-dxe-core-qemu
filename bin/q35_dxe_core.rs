@@ -16,6 +16,7 @@ use patina_adv_logger::{component::AdvancedLoggerComponent, logger::AdvancedLogg
 use patina_dxe_core::*;
 use patina_ffs_extractors::CompositeSectionExtractor;
 use patina_stacktrace::StackTrace;
+use patina_smbios::component::SmbiosProvider;
 use qemu_resources::q35::component::service as q35_services;
 extern crate alloc;
 use alloc::vec;
@@ -111,6 +112,8 @@ impl ComponentInfo for Q35 {
         add.component(q35_services::mm_test::QemuQ35MmTest::new());
         add.component(patina_performance::component::performance_config_provider::PerformanceConfigurationProvider);
         add.component(patina_performance::component::performance::Performance);
+        add.component(SmbiosProvider::new(3, 9));
+        add.component(q35_services::smbios_platform::SmbiosExampleComponent::new());
     }
 }
 
