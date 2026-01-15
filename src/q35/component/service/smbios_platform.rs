@@ -112,33 +112,6 @@ impl Q35SmbiosPlatform {
             Err(e) => log::warn!("  Failed to add Type 1: {:?}", e),
         }
 
-        let baseboard_info = Type2BaseboardInformation {
-            header: SmbiosTableHeader::new(2, 0, SMBIOS_HANDLE_PI_RESERVED),
-            manufacturer: 1,
-            product: 2,
-            version: 3,
-            serial_number: 4,
-            asset_tag: 5,
-            feature_flags: 0x01, // Board is a hosting board
-            location_in_chassis: 6,
-            chassis_handle: 0x0003,
-            board_type: 0x0A, // Motherboard
-            contained_object_handles: 0,
-            string_pool: vec![
-                String::from("Example Corporation"),
-                String::from("Example Baseboard"),
-                String::from("1.0"),
-                String::from("MB-67890"),
-                String::from("ASSET-MB-001"),
-                String::from("Main Board Slot"),
-            ],
-        };
-
-        match smbios.add_record(None, &baseboard_info) {
-            Ok(handle) => log::trace!("  Type 2 (Base Board Info) - Handle 0x{:04X}", handle),
-            Err(e) => log::warn!("  Failed to add Type 2: {:?}", e),
-        }
-
         let enclosure_info = Type3SystemEnclosure {
             header: SmbiosTableHeader::new(3, 0, SMBIOS_HANDLE_PI_RESERVED),
             manufacturer: 1,
@@ -163,9 +136,40 @@ impl Q35SmbiosPlatform {
             ],
         };
 
+        let mut type3_handle = 0x0009;
         match smbios.add_record(None, &enclosure_info) {
-            Ok(handle) => log::trace!("  Type 3 (System Enclosure) - Handle 0x{:04X}", handle),
+            Ok(handle) => {
+                log::trace!("  Type 3 (System Enclosure) - Handle 0x{:04X}", handle);
+                type3_handle = handle;
+            }
             Err(e) => log::warn!("  Failed to add Type 3: {:?}", e),
+        }
+
+        let baseboard_info = Type2BaseboardInformation {
+            header: SmbiosTableHeader::new(2, 0, SMBIOS_HANDLE_PI_RESERVED),
+            manufacturer: 1,
+            product: 2,
+            version: 3,
+            serial_number: 4,
+            asset_tag: 5,
+            feature_flags: 0x01, // Board is a hosting board
+            location_in_chassis: 6,
+            chassis_handle: type3_handle,
+            board_type: 0x0A, // Motherboard
+            contained_object_handles: 0,
+            string_pool: vec![
+                String::from("Example Corporation"),
+                String::from("Example Baseboard"),
+                String::from("1.0"),
+                String::from("MB-67890"),
+                String::from("ASSET-MB-001"),
+                String::from("Main Board Slot"),
+            ],
+        };
+
+        match smbios.add_record(None, &baseboard_info) {
+            Ok(handle) => log::trace!("  Type 2 (Base Board Info) - Handle 0x{:04X}", handle),
+            Err(e) => log::warn!("  Failed to add Type 2: {:?}", e),
         }
 
         // Type 127 End-of-Table marker is automatically added by the manager during initialization
